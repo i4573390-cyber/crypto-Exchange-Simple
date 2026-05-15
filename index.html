@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Exchange</title>
+  <meta name="description" content="Crypto Exchange — криптообмен, наличные, инвойсы, переводы. Онлайн-калькулятор обмена RUB, USD, EUR, USDT, BTC, ETH." />
+  <style>
+    :root {
+      --bg: #050202;
+      --red: #ff2f2f;
+      --red2: #b60909;
+      --red3: #ff8a82;
+      --white: #ffffff;
+      --muted: #b8bdc7;
+      --card: rgba(255,255,255,.055);
+      --border: rgba(255,255,255,.15);
+      --shadow: 0 28px 100px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.2);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--white);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 70% 8%, rgba(255,32,18,.2), transparent 35%),
+        radial-gradient(circle at 0% 80%, rgba(140,0,0,.28), transparent 28%),
+        linear-gradient(180deg,#090202 0%,#030101 45%,#060202 100%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.026) 1px, transparent 1px);
+      background-size: 78px 78px;
+      opacity: .3;
+    }
+
+    .side-line-left, .side-line-right {
+      position: fixed;
+      top: 0;
+      width: 1px;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background: rgba(255,47,47,.48);
+    }
+    .side-line-left { left: 64px; }
+    .side-line-right { right: 64px; opacity: .65; }
+
+    .container {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      background: rgba(0,0,0,.68);
+      backdrop-filter: blur(22px);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 72px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      min-width: 0;
+    }
+
+    .logo-box {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      border: 1px solid rgba(255,72,72,.38);
+      background: radial-gradient(circle at 35% 25%, rgba(255,80,70,.28), rgba(35,0,0,.88) 58%, rgba(0,0,0,.95) 100%);
+      box-shadow: 0 0 34px rgba(255,35,24,.35), inset 0 1px 0 rgba(255,255,255,.2);
+    }
+    .logo-box::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,0,0,.2);
+      background: rgba(0,0,0,.35);
+    }
+    .logo-box svg { position: relative; width: 32px; height: 32px; filter: drop-shadow(0 0 10px rgba(255,55,45,.75)); }
+
+    .brand-title { font-size: 18px; font-weight: 900; letter-spacing: -.02em; white-space: nowrap; }
+    .brand-subtitle {
+      margin-top: 2px;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: rgba(255,210,206,.75);
+      white-space: nowrap;
+    }
+
+    .nav { display: flex; gap: 28px; align-items: center; }
+    .nav a {
+      color: #d7dbe3;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+    .nav a:hover { color: var(--red3); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 0 28px;
+      border-radius: 999px;
+      border: 0;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 15px;
+      text-decoration: none;
+      transition: .2s ease;
+      white-space: nowrap;
+    }
+    .btn-red { background: var(--red); color: white; box-shadow: 0 0 38px rgba(255,35,24,.45); }
+    .btn-red:hover { background: #ff4a4a; transform: translateY(-1px); }
+    .btn-white { background: white; color: black; }
+    .btn-white:hover { background: #ffe2df; transform: translateY(-1px); }
+    .btn-glass { border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.1); color: white; backdrop-filter: blur(18px); }
+    .btn-glass:hover { background: rgba(255,255,255,.15); }
+
+    .burger {
+      display: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.1);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .mobile-menu {
+      display: none;
+      border-top: 1px solid rgba(255,255,255,.1);
+      padding: 14px 0 18px;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: block;
+      margin: 8px 0;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.1);
+      color: white;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .mobile-menu .tg-mobile { background: var(--red); text-align: center; }
+
+    .hero {
+      position: relative;
+      margin-top: 40px;
+      overflow: hidden;
+      border-radius: 36px;
+      border: 1px solid rgba(255,47,47,.16);
+      padding: 56px 32px 40px;
+      min-height: 780px;
+    }
+
+    .market-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 36px;
+      overflow: hidden;
+      opacity: .96;
+      pointer-events: none;
+    }
+    .market-bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .market-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: linear-gradient(90deg, #050202 0%, rgba(5,2,2,.72) 44%, rgba(5,2,2,.14) 100%), linear-gradient(180deg, transparent 0%, transparent 68%, #050202 100%);
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 440px;
+      gap: 34px;
+      align-items: start;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(18px);
+      font-size: 12px;
+      font-weight: 900;
+      color: #e9edf5;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+    }
+    .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 18px rgba(255,50,40,.9); }
+
+    h1 {
+      margin: 34px 0 0;
+      font-size: clamp(64px, 9.5vw, 118px);
+      line-height: .82;
+      letter-spacing: -.065em;
+      font-weight: 950;
+    }
+    .hero-text {
+      max-width: 560px;
+      margin-top: 28px;
+      color: #d8dde7;
+      font-size: 18px;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+
+    .glass {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px);
+    }
+    .glass::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent);
+    }
+    .glass::after {
+      content: "";
+      position: absolute;
+      right: -64px;
+      top: -80px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(255,47,47,.14);
+      filter: blur(42px);
+      pointer-events: none;
+    }
+    .glass-content { position: relative; z-index: 2; }
+
+    .stat-cards {
+      position: relative;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 88px;
+    }
+    .stat-card { min-height: 150px; padding: 24px; }
+    .stat-title { font-size: 29px; line-height: 1.12; font-weight: 950; letter-spacing: -.02em; word-break: break-word; }
+    .stat-text { margin-top: 14px; color: #aeb5c2; font-size: 13px; }
+
+    .right-col { display: grid; gap: 20px; }
+    .telegram-card, .calculator-card, .available-card { padding: 28px; }
+    .telegram-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .muted { color: #aeb5c2; }
+    .telegram-name { margin-top: 4px; font-size: 22px; font-weight: 950; }
+    .work-pill {
+      display: inline-flex;
+      margin-top: 18px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,70,70,.25);
+      background: rgba(255,47,47,.1);
+      color: #ffd1cc;
+      font-weight: 950;
+      font-size: 14px;
+    }
+
+    .card-title { margin: 0; font-size: 30px; line-height: 1.1; font-weight: 950; }
+    .calculator-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .refresh {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.1);
+      color: #ffb8b2;
+      cursor: pointer;
+      font-size: 22px;
+    }
+    .refresh.spin { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    label { display: block; color: #d8dde7; font-size: 13px; font-weight: 900; margin-bottom: 8px; }
+    input, select {
+      width: 100%;
+      min-height: 56px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(0,0,0,.36);
+      color: white;
+      padding: 0 16px;
+      font-size: 15px;
+      font-weight: 800;
+      outline: none;
+    }
+    input:focus, select:focus { box-shadow: 0 0 0 3px rgba(255,47,47,.22); border-color: rgba(255,80,70,.55); }
+    select option { color: #111; }
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: end;
+      margin-top: 18px;
+    }
+    .swap {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      border: 0;
+      display: grid;
+      place-items: center;
+      background: var(--red);
+      color: white;
+      font-size: 25px;
+      cursor: pointer;
+      box-shadow: 0 0 28px rgba(255,35,24,.35);
+    }
+    .result-box {
+      margin-top: 18px;
+      padding: 22px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,70,70,.25);
+      background: rgba(255,47,47,.1);
+    }
+    .result-label { color: #c7ceda; font-weight: 900; font-size: 13px; }
+    .result-value { margin-top: 10px; color: #ffd1cc; font-size: 32px; line-height: 1.1; font-weight: 950; word-break: break-word; }
+
+    .mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .mini-stat {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,70,70,.15);
+      background: rgba(255,47,47,.08);
+    }
+    .mini-icon { color: #ffb8b2; font-size: 24px; margin-bottom: 14px; }
+    .mini-title { font-size: 24px; font-weight: 950; color: #ffd1cc; }
+    .mini-text { margin-top: 8px; color: #aeb5c2; font-size: 12px; line-height: 1.45; }
+    .check-box {
+      margin-top: 24px;
+      padding: 22px;
+      border-radius: 26px;
+      border: 1px solid rgba(255,70,70,.15);
+      background: rgba(0,0,0,.25);
+    }
+    .check-box h3 { margin: 0 0 18px; font-size: 26px; }
+    .check-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .check-item { display: flex; gap: 12px; color: #d7dce6; font-size: 14px; line-height: 1.4; }
+    .check-icon {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      border: 1px solid rgba(255,180,170,.38);
+      background: rgba(255,47,47,.15);
+      color: #ffd1cc;
+      font-weight: 900;
+    }
+
+    section.block { margin-top: 92px; }
+    .section-head { margin-bottom: 34px; max-width: 860px; }
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(42px, 5.2vw, 72px);
+      line-height: .95;
+      letter-spacing: -.045em;
+      font-weight: 950;
+    }
+    .section-head span { color: var(--red3); }
+    .section-head p { margin: 20px 0 0; color: #d4d9e3; font-size: 18px; line-height: 1.6; }
+
+    .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .service-card { min-height: 225px; padding: 28px; }
+    .service-icon {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      border: 1px solid rgba(255,70,70,.2);
+      background: rgba(255,47,47,.1);
+      color: #ffb8b2;
+      font-size: 27px;
+      box-shadow: 0 0 28px rgba(255,35,24,.2);
+    }
+    .service-card h3 { margin: 26px 0 0; font-size: 25px; line-height: 1.1; }
+    .service-card p { color: #aeb5c2; line-height: 1.65; margin: 14px 0 0; }
+
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .step-card { min-height: 235px; padding: 28px; }
+    .step-num { margin-bottom: 38px; font-size: 42px; color: rgba(255,138,130,.78); font-weight: 950; }
+    .step-card h3 { margin: 0; font-size: 21px; }
+    .step-card p { color: #aeb5c2; line-height: 1.65; margin: 14px 0 0; }
+
+    .reviews-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .review-card { padding: 24px; }
+    .stars { color: #ffb8b2; letter-spacing: 2px; margin-bottom: 14px; }
+    .review-text { min-height: 92px; color: #d7dce6; font-size: 14px; line-height: 1.6; }
+    .review-name { margin-top: 18px; font-weight: 950; }
+
+    .request-card { padding: 40px; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; }
+    .request-card h2 { margin: 0; font-size: clamp(40px, 5vw, 68px); line-height: .95; letter-spacing: -.045em; }
+    .request-card p { max-width: 780px; color: #d4d9e3; font-size: 18px; line-height: 1.7; }
+
+    .floating-tg {
+      display: none;
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 60;
+      text-align: center;
+      padding: 17px 20px;
+      border-radius: 999px;
+      background: var(--red);
+      color: white;
+      font-weight: 950;
+      text-decoration: none;
+      box-shadow: 0 0 35px rgba(255,35,24,.45);
+    }
+    footer {
+      position: relative;
+      z-index: 1;
+      margin-top: 76px;
+      padding: 32px 16px;
+      border-top: 1px solid rgba(255,255,255,.1);
+      text-align: center;
+      color: #8f98a8;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+      .nav { display: none; }
+      .burger { display: grid; place-items: center; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .right-col { grid-template-columns: 1fr; }
+      .stat-cards { grid-template-columns: repeat(2, 1fr); margin-top: 44px; }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .reviews-grid { grid-template-columns: repeat(2, 1fr); }
+      .request-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .container { width: min(100% - 24px, 1240px); }
+      .side-line-left, .side-line-right { display: none; }
+      .header-inner { min-height: 66px; }
+      .header .btn { display: none; }
+      .brand-subtitle { display: none; }
+      .logo-box { width: 44px; height: 44px; }
+      .hero { margin-top: 18px; padding: 32px 12px 22px; border-radius: 26px; min-height: auto; }
+      h1 { font-size: clamp(58px, 18vw, 84px); }
+      .hero-text { font-size: 16px; }
+      .hero-actions .btn { width: 100%; }
+      .stat-cards, .services-grid, .steps-grid, .reviews-grid, .mini-stats, .check-list { grid-template-columns: 1fr; }
+      .stat-cards { margin-top: 32px; }
+      .calc-grid { grid-template-columns: 1fr; }
+      .swap { width: 100%; }
+      .telegram-card, .calculator-card, .available-card, .service-card, .step-card, .review-card, .request-card { padding: 22px; }
+      .section-head h2, .request-card h2 { font-size: 42px; }
+      .section-head p, .request-card p { font-size: 16px; }
+      .floating-tg { display: block; }
+      footer { padding-bottom: 94px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="side-line-left"></div>
+  <div class="side-line-right"></div>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a class="brand" href="#top">
+        <div class="logo-box" aria-hidden="true">
+          <svg viewBox="0 0 48 48">
+            <defs>
+              <linearGradient id="logoRed" x1="8" x2="40" y1="40" y2="8">
+                <stop offset="0%" stop-color="#7f0b0b" />
+                <stop offset="45%" stop-color="#ff3026" />
+                <stop offset="100%" stop-color="#ffb4ad" />
+              </linearGradient>
+            </defs>
+            <path d="M15 16h13c5 0 9 4 9 9 0 4-2.7 7.4-6.4 8.5" fill="none" stroke="url(#logoRed)" stroke-width="4" stroke-linecap="round" />
+            <path d="M31 10l7 6-7 6" fill="none" stroke="url(#logoRed)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M33 32H20c-5 0-9-4-9-9 0-4 2.7-7.4 6.4-8.5" fill="none" stroke="url(#logoRed)" stroke-width="4" stroke-linecap="round" />
+            <path d="M17 38l-7-6 7-6" fill="none" stroke="url(#logoRed)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="24" cy="24" r="4" fill="#ff3a2f" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Crypto Exchange</div>
+          <div class="brand-subtitle">криптообмен • наличные • инвойсы • переводы</div>
+        </div>
+      </a>
+
+      <nav class="nav">
+        <a href="#services">Услуги</a>
+        <a href="#calculator">Калькулятор</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#how">Как обменять</a>
+      </nav>
+
+      <a class="btn btn-red" id="headerTg" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать менеджеру</a>
+      <button class="burger" id="burger" type="button" aria-label="Меню">☰</button>
+    </div>
+    <div class="container mobile-menu" id="mobileMenu">
+      <a href="#services">Услуги</a>
+      <a href="#calculator">Калькулятор</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#how">Как обменять</a>
+      <a class="tg-mobile" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать менеджеру</a>
+    </div>
+  </header>
+
+  <main class="container" id="top">
+    <section class="hero">
+      <div class="market-bg">
+        <svg viewBox="0 0 1200 720" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartRed" x1="0" x2="1" y1="1" y2="0">
+              <stop offset="0%" stop-color="#3b0505" />
+              <stop offset="45%" stop-color="#ff3026" />
+              <stop offset="100%" stop-color="#ffd1cc" />
+            </linearGradient>
+            <linearGradient id="barRed" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#ff3a2e" stop-opacity="0.34" />
+              <stop offset="100%" stop-color="#ff3a2e" stop-opacity="0" />
+            </linearGradient>
+            <filter id="chartGlow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+          </defs>
+          <g id="bars"></g>
+          <path d="M40 560 C110 510 125 445 180 490 C240 545 280 430 335 468 C405 516 440 375 500 415 C570 462 615 310 675 350 C735 390 760 275 825 315 C890 355 930 210 990 235 C1060 265 1080 135 1145 92" fill="none" stroke="#6b1818" stroke-width="2" opacity="0.65" />
+          <path d="M54 575 L126 520 L184 548 L250 468 L318 500 L385 420 L455 450 L530 360 L605 405 L685 305 L760 340 L835 232 L910 260 L1000 155 L1136 72" fill="none" stroke="url(#chartRed)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#chartGlow)" />
+          <path d="M1084 78 L1136 72 L1122 124" fill="none" stroke="#ff4b40" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" filter="url(#chartGlow)" />
+          <path d="M80 620 C250 500 390 642 560 440 C730 238 855 520 1135 250" fill="none" stroke="#ff392f" stroke-width="2" stroke-dasharray="10 16" opacity="0.35" />
+        </svg>
+      </div>
+
+      <div class="hero-grid">
+        <div>
+          <div class="badge"><span class="badge-dot"></span> Криптообмен • наличные • инвойсы • переводы</div>
+          <h1>Crypto<br />Exchange</h1>
+          <p class="hero-text">Онлайн-расчет обмена RUB, USD, EUR на USDT, BTC, ETH. Финальный курс, лимиты и порядок сделки подтверждает менеджер в Telegram.</p>
+          <div class="hero-actions">
+            <a class="btn btn-red tg-link" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать менеджеру</a>
+            <a class="btn btn-glass" href="#calculator">Рассчитать обмен</a>
+          </div>
+
+          <div class="stat-cards">
+            <div class="glass stat-card"><div class="glass-content"><div class="stat-title">RUB / USD / EUR</div><div class="stat-text">фиатные валюты</div></div></div>
+            <div class="glass stat-card"><div class="glass-content"><div class="stat-title">USDT / BTC / ETH</div><div class="stat-text">криптовалюты</div></div></div>
+            <div class="glass stat-card"><div class="glass-content"><div class="stat-title">9:00–19:00</div><div class="stat-text">график работы</div></div></div>
+            <div class="glass stat-card"><div class="glass-content"><div class="stat-title">По запросу</div><div class="stat-text">AED, CNY, TRY, KZT, TON</div></div></div>
+          </div>
+        </div>
+
+        <div class="right-col">
+          <div class="glass telegram-card">
+            <div class="glass-content">
+              <div class="telegram-head">
+                <div><div class="muted">Telegram</div><div class="telegram-name">@ExchangerCrypto</div></div>
+                <div style="font-size:38px;color:#ffb8b2">◌</div>
+              </div>
+              <p class="muted" style="line-height:1.65">Для фиксации курса, уточнения лимитов, резерва и порядка сделки напишите менеджеру.</p>
+              <div class="work-pill">Работаем 9:00–19:00</div>
+              <a class="btn btn-white tg-link" style="width:100%;margin-top:20px" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Открыть Telegram</a>
+            </div>
+          </div>
+
+          <div class="glass calculator-card" id="calculator">
+            <div class="glass-content">
+              <div class="calculator-head">
+                <div><h2 class="card-title">Калькулятор</h2><div class="muted" style="margin-top:8px">Предварительный расчет обмена</div></div>
+                <button class="refresh" id="refresh" type="button">↻</button>
+              </div>
+
+              <label for="amount">Сумма</label>
+              <input id="amount" value="100000" inputmode="decimal" />
+
+              <div class="calc-grid">
+                <div><label for="from">Отдаете</label><select id="from"></select></div>
+                <button class="swap" id="swap" type="button">↔</button>
+                <div><label for="to">Получаете</label><select id="to"></select></div>
+              </div>
+
+              <div class="result-box">
+                <div class="result-label">Примерно к получению</div>
+                <div class="result-value" id="result">—</div>
+              </div>
+
+              <a class="btn btn-red tg-link" style="width:100%;margin-top:20px" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать в Telegram</a>
+            </div>
+          </div>
+
+          <div class="glass available-card">
+            <div class="glass-content">
+              <div class="mini-stats">
+                <div class="mini-stat"><div class="mini-icon">◷</div><div class="mini-title">9:00–19:00</div><div class="mini-text">ответ менеджера</div></div>
+                <div class="mini-stat"><div class="mini-icon">◎</div><div class="mini-title">10+</div><div class="mini-text">валют и активов</div></div>
+                <div class="mini-stat"><div class="mini-icon">▣</div><div class="mini-title">24/7</div><div class="mini-text">онлайн-расчет</div></div>
+              </div>
+              <div class="check-box">
+                <h3>Что доступно клиентам</h3>
+                <div class="check-list" id="checkList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="services">
+      <div class="section-head"><h2>Основные <span>услуги</span></h2><p>Работаем с популярными направлениями обмена и расчетов. Подтверждение курса, суммы и условий — через менеджера в Telegram.</p></div>
+      <div class="services-grid" id="servicesGrid"></div>
+    </section>
+
+    <section class="block" id="how">
+      <div class="section-head"><h2>Как проходит <span>обмен</span></h2><p>Четыре понятных шага от заявки до получения средств.</p></div>
+      <div class="steps-grid" id="stepsGrid"></div>
+    </section>
+
+    <section class="block" id="reviews">
+      <div class="section-head"><h2>Отзывы <span>клиентов</span></h2></div>
+      <div class="reviews-grid" id="reviewsGrid"></div>
+    </section>
+
+    <section class="block">
+      <div class="glass request-card">
+        <div class="glass-content">
+          <div class="badge" style="margin-bottom:20px"><span class="badge-dot"></span> Доступно по запросу</div>
+          <h2>Другие валюты и направления</h2>
+          <p>AED, CNY, TRY, KZT, USDC, TON, SOL, BNB и другие фиатные или криптовалютные направления можно уточнить у менеджера.</p>
+        </div>
+        <a class="btn btn-red tg-link" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать менеджеру</a>
+      </div>
+    </section>
+  </main>
+
+  <a class="floating-tg tg-link" href="https://t.me/ExchangerCrypto" target="_blank" rel="noreferrer">Написать в Telegram</a>
+
+  <footer>© <span id="year"></span> Crypto Exchange. Курсы предварительные. Финальные условия подтверждаются менеджером в Telegram.</footer>
+
+  <script>
+    const TELEGRAM_URL = "https://t.me/ExchangerCrypto";
+    const HIDDEN_SERVICE_MARGIN = 2.5;
+
+    const assets = {
+      RUB: { name: "Российский рубль" },
+      USD: { name: "Доллар США" },
+      EUR: { name: "Евро" },
+      USDT: { name: "Tether" },
+      BTC: { name: "Bitcoin" },
+      ETH: { name: "Ethereum" },
+    };
+
+    const crypto = new Set(["USDT", "BTC", "ETH"]);
+
+    const ratesUsd = {
+      RUB: 92,
+      USD: 1,
+      EUR: 0.92,
+      USDT: 1,
+      BTC: 68000,
+      ETH: 3600,
+    };
+
+    const reviews = [
+      ["Алексей", "Обмен прошел нормально, менеджер быстро ответил и объяснил порядок"],
+      ["Марина", "Сначала посчитала сумму на сайте, потом написала в Telegram. Всё понятно"],
+      ["Дмитрий", "Курс заранее подтвердили, лишних вопросов не было"],
+      ["Ольга", "Удобный калькулятор, сразу видно примерную сумму"],
+      ["Илья", "Ответили быстро, обмен сделали в тот же день"],
+      ["Екатерина", "Понравилось, что сначала всё уточнили и только потом провели сделку"],
+      ["Руслан", "Нормальный сервис, всё прошло спокойно"],
+      ["Анна", "Быстро согласовали курс и написали, что нужно для обмена"],
+    ];
+
+    const services = [
+      ["◉", "Прием валютной выручки", "Помощь с приемом и обменом цифровых активов. Уточняйте направление, сумму и условия у менеджера."],
+      ["▣", "Выдача наличных", "Обмен криптовалюты на наличные по согласованному курсу. Возможны популярные фиатные направления."],
+      ["▤", "Оплата инвойсов", "Оплата счетов и инвойсов от 100 USD. Перед оплатой менеджер проверит реквизиты и детали заявки."],
+      ["↔", "Наличный обмен", "Крипта ↔ фиат. Быстрый расчет через калькулятор и подтверждение курса в Telegram."],
+      ["◎", "По всему миру", "Работа с популярными направлениями и валютами: RUB, USD, EUR, CNY, AED, TRY, KZT и другими."],
+      ["▣", "Безопасность", "Заявка проходит через менеджера: согласование курса, реквизитов, времени и способа получения."],
+    ];
+
+    const steps = [
+      ["01", "Оставьте заявку", "Напишите менеджеру в Telegram и укажите, что хотите обменять."],
+      ["02", "Получите расчет", "Менеджер уточнит сумму, направление, резерв и рассчитает итог."],
+      ["03", "Подтвердите курс", "После согласования курса и условий вы подтверждаете сделку."],
+      ["04", "Получите средства", "После завершения обмена вы получаете средства выбранным способом."],
+    ];
+
+    const checklist = [
+      "Покупка и продажа USDT за рубли и доллары",
+      "Расчет обмена через удобный онлайн-калькулятор",
+      "Выдача наличных и прием валютной выручки по согласованию",
+      "Связь напрямую с менеджером через Telegram",
+      "Популярные криптовалюты: BTC, ETH, USDT, TON, BNB",
+      "Сопровождение сделки и проверка деталей заявки",
+    ];
+
+    function formatNumber(value, max = 6) {
+      if (!Number.isFinite(value)) return "—";
+      return new Intl.NumberFormat("ru-RU", { maximumFractionDigits: max }).format(value);
+    }
+
+    function isCrypto(code) { return crypto.has(code); }
+
+    function calculate() {
+      const amount = Number(String(document.getElementById("amount").value).replace(",", "."));
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      if (!Number.isFinite(amount) || amount <= 0) {
+        document.getElementById("result").textContent = "—";
+        return;
+      }
+      const fromUsd = isCrypto(from) ? ratesUsd[from] : 1 / ratesUsd[from];
+      const toUsd = isCrypto(to) ? ratesUsd[to] : 1 / ratesUsd[to];
+      const result = ((amount * fromUsd) / toUsd) * (1 - HIDDEN_SERVICE_MARGIN / 100);
+      document.getElementById("result").textContent = `${formatNumber(result)} ${to}`;
+
+      const msg = encodeURIComponent(`Здравствуйте. Хочу обменять ${amount || "сумму"} ${from} на ${to}. Расчет на сайте: примерно ${formatNumber(result)} ${to}`);
+      document.querySelectorAll(".tg-link").forEach(a => a.href = `${TELEGRAM_URL}?text=${msg}`);
+    }
+
+    function fillSelects() {
+      const from = document.getElementById("from");
+      const to = document.getElementById("to");
+      Object.keys(assets).forEach(code => {
+        from.add(new Option(`${code} — ${assets[code].name}`, code));
+        to.add(new Option(`${code} — ${assets[code].name}`, code));
+      });
+      from.value = "RUB";
+      to.value = "USDT";
+    }
+
+    function render() {
+      document.getElementById("year").textContent = new Date().getFullYear();
+      document.getElementById("bars").innerHTML = Array.from({ length: 34 }).map((_, i) => {
+        const x = 36 + i * 34;
+        const h = 40 + ((i * 47) % 135);
+        return `<rect x="${x}" y="${610 - h}" width="12" height="${h}" rx="5" fill="url(#barRed)" opacity="0.55" />`;
+      }).join("");
+
+      document.getElementById("checkList").innerHTML = checklist.map(item => `<div class="check-item"><span class="check-icon">✓</span><span>${item}</span></div>`).join("");
+
+      document.getElementById("servicesGrid").innerHTML = services.map(([icon, title, text]) => `
+        <div class="glass service-card"><div class="glass-content"><div class="service-icon">${icon}</div><h3>${title}</h3><p>${text}</p></div></div>
+      `).join("");
+
+      document.getElementById("stepsGrid").innerHTML = steps.map(([num, title, text]) => `
+        <div class="glass step-card"><div class="glass-content"><div class="step-num">${num}</div><h3>${title}</h3><p>${text}</p></div></div>
+      `).join("");
+
+      document.getElementById("reviewsGrid").innerHTML = reviews.map(([name, text]) => `
+        <div class="glass review-card"><div class="glass-content"><div class="stars">★★★★★</div><div class="review-text">“${text}”</div><div class="review-name">${name}</div></div></div>
+      `).join("");
+    }
+
+    document.getElementById("burger").addEventListener("click", () => {
+      document.getElementById("mobileMenu").classList.toggle("open");
+    });
+    document.getElementById("swap").addEventListener("click", () => {
+      const from = document.getElementById("from");
+      const to = document.getElementById("to");
+      const old = from.value;
+      from.value = to.value;
+      to.value = old;
+      calculate();
+    });
+    document.getElementById("refresh").addEventListener("click", (e) => {
+      e.currentTarget.classList.add("spin");
+      setTimeout(() => e.currentTarget.classList.remove("spin"), 700);
+      calculate();
+    });
+
+    render();
+    fillSelects();
+    calculate();
+    document.getElementById("amount").addEventListener("input", calculate);
+    document.getElementById("from").addEventListener("change", calculate);
+    document.getElementById("to").addEventListener("change", calculate);
+  </script>
+</body>
+</html>
